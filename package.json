@@ -1,0 +1,8 @@
+{
+  "name": "lp-algo-panel",
+  "version": "1.0.0",
+  "description": "LP Algo Averaging EA - Remote Control Panel",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}
