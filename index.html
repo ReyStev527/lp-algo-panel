@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#080810">
+<title>LP Algo — Remote Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#080810;color:#fff;font-family:'JetBrains Mono',monospace;overflow-x:hidden}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none}
+input[type=number]{-moz-appearance:textfield}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:0 0}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:3px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(0,255,136,.2)}50%{box-shadow:0 0 40px rgba(0,255,136,.4)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease}
+.font-d{font-family:'Orbitron',sans-serif}
+.font-m{font-family:'JetBrains Mono',monospace}
+
+/* Login */
+.login-wrap{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;position:relative}
+.login-glow{position:fixed;top:-30%;left:50%;transform:translateX(-50%);width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(0,255,136,.06) 0%,transparent 70%);pointer-events:none}
+.login-logo{width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,rgba(0,255,136,.25),rgba(0,204,255,.2));border:2px solid rgba(0,255,136,.27);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 0 60px rgba(0,255,136,.15)}
+.login-card{width:100%;max-width:400px;background:rgba(255,255,255,.015);border:1px solid rgba(255,255,255,.05);border-radius:18px;padding:28px}
+.mode-toggle{display:flex;border-radius:10px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.05);overflow:hidden;margin-bottom:22px}
+.mode-btn{flex:1;padding:10px 0;border:none;cursor:pointer;font-size:12px;font-weight:700;font-family:'Orbitron',sans-serif;letter-spacing:1.5px;transition:all .15s}
+.mode-btn.active{background:rgba(0,255,136,.12);color:#00ff88}
+.mode-btn:not(.active){background:transparent;color:#445}
+.input-field{width:100%;padding:14px 16px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:#fff;font-size:20px;font-family:'JetBrains Mono',monospace;outline:none;letter-spacing:2px}
+.input-field.small{font-size:13px;padding:12px 14px;color:#999;letter-spacing:0}
+.input-label{font-size:11px;color:#556;letter-spacing:1.5px;margin-bottom:6px;display:block}
+.err-box{margin-top:14px;padding:10px 14px;border-radius:10px;background:rgba(255,68,68,.08);border:1px solid rgba(255,68,68,.15);color:#ff6666;font-size:12px;white-space:pre-line}
+.info-box{padding:10px 14px;border-radius:8px;margin-bottom:16px;background:rgba(0,204,255,.06);border:1px solid rgba(0,204,255,.1);font-size:11px;color:#5599aa;line-height:1.5}
+.btn{width:100%;padding:14px 20px;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Orbitron',sans-serif;letter-spacing:1.2px;transition:all .15s}
+.btn-primary{background:#00ff88;color:#080810;box-shadow:0 0 24px rgba(0,255,136,.15)}
+.btn-outline{background:transparent;border:1.5px solid #00ff88;color:#00ff88}
+.btn-danger{background:transparent;border:1.5px solid #ff4444;color:#ff4444}
+.btn-warn{background:#ffd700;color:#080810;box-shadow:0 0 24px rgba(255,215,0,.15)}
+.btn-cyan{background:#00ccff;color:#080810;box-shadow:0 0 24px rgba(0,204,255,.15)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-sm{padding:10px 14px;font-size:12px}
+
+/* Dashboard */
+.dash{max-width:520px;margin:0 auto;min-height:100dvh}
+.header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.04);background:rgba(0,0,0,.5);backdrop-filter:blur(12px);position:sticky;top:0;z-index:10}
+.header-logo{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,rgba(0,255,136,.2),rgba(0,204,255,.12));border:1.5px solid rgba(0,255,136,.27);display:flex;align-items:center;justify-content:center}
+.status-pill{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px}
+.status-dot{width:6px;height:6px;border-radius:50%}
+.status-bar{padding:8px 16px;display:flex;align-items:center;justify-content:space-between}
+.ea-dot{width:7px;height:7px;border-radius:50%}
+.tab-nav{display:flex;padding:6px 8px;gap:2px;border-bottom:1px solid rgba(255,255,255,.03)}
+.tab-btn{flex:1;padding:10px 4px;border:none;border-radius:8px;cursor:pointer;font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;transition:all .15s;border-bottom:2px solid transparent}
+.tab-btn.active{background:rgba(0,255,136,.08);color:#00ff88;border-bottom-color:rgba(0,255,136,.4)}
+.tab-btn:not(.active){background:transparent;color:#445}
+.content{padding:14px 16px;padding-bottom:80px}
+
+/* Cards */
+.card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-radius:12px;padding:12px 14px;margin-bottom:12px}
+.stat{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);border-radius:12px;padding:12px 14px;flex:1;min-width:0}
+.stat-label{font-size:10px;color:#556;letter-spacing:1.5px;text-transform:uppercase}
+.stat-value{font-size:20px;font-weight:700;font-family:'Orbitron',sans-serif;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat-sub{font-size:10px;color:#445;margin-top:2px}
+.row{display:flex;gap:8px;margin-bottom:10px}
+.glow-line{height:1px;background:linear-gradient(90deg,transparent,rgba(0,204,255,.4),transparent);margin:14px 0}
+.section-title{font-size:10px;color:#445;letter-spacing:2px;margin-bottom:10px}
+.pos-card{flex:1;border-radius:14px;padding:14px 10px;text-align:center}
+.pos-card.buy{background:rgba(0,255,136,.03);border:1px solid rgba(0,255,136,.08)}
+.pos-card.sell{background:rgba(255,68,68,.03);border:1px solid rgba(255,68,68,.08)}
+.price-box{background:rgba(255,255,255,.02);border-radius:12px;border:1px solid rgba(255,255,255,.04);padding:14px;display:flex;align-items:center}
+.price-divider{width:1px;height:36px;background:rgba(255,255,255,.05)}
+.confirm-box{padding:16px;border-radius:14px;margin-bottom:14px;background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.15)}
+.warning-box{margin-top:14px;padding:10px 14px;border-radius:10px;background:rgba(255,100,0,.04);border:1px solid rgba(255,100,0,.08);font-size:11px;color:#775533;line-height:1.5}
+.settings-input{width:100%;padding:12px 14px;margin-top:4px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.07);border-radius:10px;color:#fff;font-size:16px;font-family:'JetBrains Mono',monospace;outline:none}
+.log-container{background:rgba(0,0,0,.3);border-radius:12px;border:1px solid rgba(255,255,255,.03);max-height:420px;overflow-y:auto}
+.log-item{padding:7px 12px;border-bottom:1px solid rgba(255,255,255,.02);font-size:11px}
+.log-ea{padding:8px 12px;border-radius:8px;margin-bottom:8px;background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.06);font-size:11px;color:#00ff88}
+.logout-btn{background:none;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:5px 10px;color:#445;cursor:pointer;font-size:10px;font-family:'JetBrains Mono',monospace}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+// ======================== KONFIGURASI ========================
+const API_KEY = "LP_ALGO_2025_SECRET_KEY";
+const ALLOWED = [159956643];
+
+// Auto-detect API URL (same domain as panel)
+const BASE_URL = window.location.origin + "/.netlify/functions/api";
+
+// ======================== STATE ========================
+let state = {
+  screen: "login", // login | dashboard
+  mode: "live",    // demo | live
+  accountId: "",
+  apiUrl: BASE_URL,
+  status: null,
+  eaOn: true,
+  tab: "monitor",
+  cmdLoading: "",
+  logs: [],
+  confirmCmd: null,
+  error: "",
+  loading: false,
+  settings: { cut_loss:"700", main_lot:"0.01", trail_step:"30", trail_gap:"10", trail_activation:"15" },
+  demoData: null,
+  pollTimer: null,
+};
+
+// ======================== API ========================
+async function apiCall(action, method="GET", body=null) {
+  const url = `${state.apiUrl}?action=${action}&account_id=${state.accountId}&api_key=${API_KEY}`;
+  const opts = { method, headers: { "Content-Type": "application/json" } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+// ======================== DEMO DATA ========================
+function makeDemoData() {
+  const b = 1000 + Math.random() * 500;
+  return {
+    ea_enabled:true, symbol:"XAUUSD", balance:b.toFixed(2),
+    equity:(b+(Math.random()-.45)*50).toFixed(2), free_margin:(b*.8).toFixed(2),
+    spread:String(Math.floor(15+Math.random()*20)),
+    buy_positions:String(Math.floor(Math.random()*6)),
+    sell_positions:String(Math.floor(Math.random()*4)),
+    buy_profit:((Math.random()-.4)*30).toFixed(2),
+    sell_profit:((Math.random()-.4)*20).toFixed(2),
+    buy_lots:(Math.random()*.5).toFixed(2), sell_lots:(Math.random()*.3).toFixed(2),
+    total_profit:((Math.random()-.4)*50).toFixed(2),
+    bid:(2640+Math.random()*10).toFixed(2), ask:(2640.5+Math.random()*10).toFixed(2),
+    server_time:new Date().toISOString().replace("T"," ").substring(0,19),
+    account_id:state.accountId, account_server:"Exness-MT5Real9",
+    broker:"Exness Technologies Ltd", leverage:"1:2000",
+    log:"EA berjalan normal", cmd_count:0,
+  };
+}
+
+function tickDemo() {
+  if (!state.demoData) return;
+  const p = state.demoData;
+  const bl = parseFloat(p.balance);
+  p.ea_enabled = state.eaOn;
+  p.equity = (bl + (Math.random()-.45)*5 + parseFloat(p.total_profit)).toFixed(2);
+  p.bid = (parseFloat(p.bid) + (Math.random()-.5)*.5).toFixed(2);
+  p.ask = (parseFloat(p.ask) + (Math.random()-.5)*.5).toFixed(2);
+  p.spread = String(Math.floor(15+Math.random()*20));
+  p.buy_profit = (parseFloat(p.buy_profit)+(Math.random()-.48)*2).toFixed(2);
+  p.sell_profit = (parseFloat(p.sell_profit)+(Math.random()-.48)*1.5).toFixed(2);
+  p.total_profit = (parseFloat(p.buy_profit)+parseFloat(p.sell_profit)).toFixed(2);
+  p.server_time = new Date().toISOString().replace("T"," ").substring(0,19);
+  state.status = { ea_online: true, data: p };
+}
+
+// ======================== ACTIONS ========================
+function addLog(msg) {
+  state.logs.unshift({ time: new Date().toLocaleTimeString(), msg });
+  if (state.logs.length > 80) state.logs.length = 80;
+}
+
+async function doLogin() {
+  const id = state.accountId.trim();
+  if (!id) { state.error = "Masukkan Account ID MT5"; render(); return; }
+  state.loading = true; state.error = ""; render();
+
+  if (state.mode === "demo") {
+    if (!ALLOWED.some(a => a > 0 && a === parseInt(id))) {
+      state.error = "Account ID tidak terdaftar.\nHubungi @Ladangpertanian";
+      state.loading = false; render(); return;
+    }
+    state.demoData = makeDemoData();
+    state.status = { ea_online: true, data: state.demoData };
+    addLog("🟢 Panel connected (demo)");
+    state.screen = "dashboard"; state.loading = false;
+    startPolling();
+    render(); return;
+  }
+
+  // LIVE mode
+  try {
+    const res = await apiCall("login", "POST");
+    if (res.success) {
+      addLog("🟢 Panel connected");
+      state.screen = "dashboard"; startPolling();
+    } else {
+      state.error = res.error || "Login gagal — akun tidak terdaftar";
+    }
+  } catch (e) {
+    state.error = "Server tidak merespon.\nPastikan deploy Netlify sudah benar.";
+  }
+  state.loading = false; render();
+}
+
+async function pollStatus() {
+  if (state.mode === "demo") {
+    tickDemo();
+  } else {
+    try {
+      const res = await apiCall("status");
+      state.status = res;
+      if (res?.data) state.eaOn = res.data.ea_enabled !== false;
+    } catch {}
+  }
+  render();
+}
+
+function startPolling() {
+  if (state.pollTimer) clearInterval(state.pollTimer);
+  pollStatus();
+  state.pollTimer = setInterval(pollStatus, state.mode === "demo" ? 2000 : 5000);
+}
+
+async function sendCmd(cmd) {
+  state.cmdLoading = cmd; state.confirmCmd = null; render();
+
+  if (state.mode === "demo") {
+    await new Promise(r => setTimeout(r, 500));
+    if (cmd === "ON") { state.eaOn = true; addLog("✅ EA dinyalakan"); }
+    else if (cmd === "OFF") { state.eaOn = false; addLog("⛔ EA dimatikan"); }
+    else if (cmd === "CLOSE_BUY") {
+      Object.assign(state.demoData, { buy_positions:"0", buy_lots:"0.00", buy_profit:"0.00" });
+      state.demoData.total_profit = (parseFloat(state.demoData.sell_profit)).toFixed(2);
+      addLog("✅ Close semua BUY");
+    }
+    else if (cmd === "CLOSE_SELL") {
+      Object.assign(state.demoData, { sell_positions:"0", sell_lots:"0.00", sell_profit:"0.00" });
+      state.demoData.total_profit = (parseFloat(state.demoData.buy_profit)).toFixed(2);
+      addLog("✅ Close semua SELL");
+    }
+    else if (cmd === "CLOSE_ALL") {
+      Object.assign(state.demoData, { buy_positions:"0", sell_positions:"0", buy_lots:"0.00", sell_lots:"0.00", buy_profit:"0.00", sell_profit:"0.00", total_profit:"0.00" });
+      addLog("⚠️ Close ALL positions");
+    }
+  } else {
+    try {
+      await apiCall("command", "POST", { cmd });
+      addLog("📱 Command: " + cmd);
+      if (cmd === "ON") state.eaOn = true;
+      if (cmd === "OFF") state.eaOn = false;
+      setTimeout(pollStatus, 2000);
+    } catch { addLog("❌ Gagal kirim: " + cmd); }
+  }
+  state.cmdLoading = ""; render();
+}
+
+async function saveSettings() {
+  state.cmdLoading = "S"; render();
+  if (state.mode === "demo") {
+    await new Promise(r => setTimeout(r, 400));
+    addLog("⚙️ Settings disimpan (demo)");
+  } else {
+    try { await apiCall("settings", "POST", state.settings); addLog("⚙️ Settings disimpan"); }
+    catch { addLog("❌ Gagal simpan settings"); }
+  }
+  state.cmdLoading = ""; render();
+}
+
+function doLogout() {
+  if (state.pollTimer) clearInterval(state.pollTimer);
+  state.screen = "login"; state.status = null; state.demoData = null;
+  state.logs = []; state.error = ""; state.confirmCmd = null;
+  render();
+}
+
+// ======================== RENDER ========================
+function $(sel) { return document.querySelector(sel); }
+function h(tag, attrs, ...kids) {
+  let html = `<${tag}`;
+  if (attrs) for (const [k,v] of Object.entries(attrs)) {
+    if (k === "style" && typeof v === "object") html += ` style="${Object.entries(v).map(([a,b])=>`${a.replace(/[A-Z]/g,m=>'-'+m.toLowerCase())}:${b}`).join(';')}"`;
+    else html += ` ${k}="${v}"`;
+  }
+  html += `>${kids.join("")}</${tag}>`;
+  return html;
+}
+
+function render() {
+  const app = document.getElementById("app");
+  if (state.screen === "login") app.innerHTML = renderLogin();
+  else app.innerHTML = renderDashboard();
+  bindEvents();
+}
+
+function renderLogin() {
+  return `
+<div class="login-wrap">
+  <div class="login-glow"></div>
+  <div style="text-align:center;margin-bottom:36px;position:relative">
+    <div class="login-logo"><span class="font-d" style="font-size:32px;font-weight:900;color:#00ff88">LP</span></div>
+    <h1 class="font-d" style="font-size:26px;font-weight:800;background:linear-gradient(135deg,#00ff88,#00ccff);-webkit-background-clip:text;-webkit-text-fill-color:transparent">LP ALGO</h1>
+    <p style="color:#334;font-size:12px;margin-top:6px;letter-spacing:2px">REMOTE CONTROL PANEL</p>
+  </div>
+  <div class="login-card fade-in">
+    <div class="mode-toggle">
+      <button class="mode-btn ${state.mode==='demo'?'active':''}" onclick="state.mode='demo';state.error='';render()">🎮 DEMO</button>
+      <button class="mode-btn ${state.mode==='live'?'active':''}" onclick="state.mode='live';state.error='';render()">🌐 LIVE</button>
+    </div>
+    ${state.mode==='demo'?'<div class="info-box">💡 Demo mode — data simulasi. Untuk konek EA asli, switch ke LIVE.</div>':''}
+    <label class="input-label">ACCOUNT ID</label>
+    <input type="number" id="accInput" class="input-field" placeholder="Masukkan Account ID MT5" value="${state.accountId}">
+    ${state.mode==='live'?`
+      <div style="margin-top:14px">
+        <label class="input-label">SERVER URL</label>
+        <input type="text" id="urlInput" class="input-field small" placeholder="${BASE_URL}" value="${state.apiUrl}">
+      </div>
+    `:''}
+    ${state.error?`<div class="err-box">⛔ ${state.error}</div>`:''}
+    <div style="margin-top:20px">
+      <button class="btn btn-primary" onclick="doLogin()" ${state.loading?'disabled':''}>${state.loading?'⏳ ...':'🔐 LOGIN'}</button>
+    </div>
+  </div>
+  <p style="color:#223;font-size:10px;margin-top:28px;letter-spacing:1px">@Ladangpertanian • LP Algo v20</p>
+</div>`;
+}
+
+function renderDashboard() {
+  const d = state.status?.data || {};
+  const ol = state.status?.ea_online || false;
+  const on = state.eaOn;
+  const tp = parseFloat(d.total_profit || 0);
+
+  return `
+<div class="dash">
+  <!-- Header -->
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="header-logo"><span class="font-d" style="font-size:12px;font-weight:900;color:#00ff88">LP</span></div>
+      <div>
+        <div class="font-d" style="font-size:14px;font-weight:700;color:#eee">LP ALGO</div>
+        <div style="font-size:9px;color:#445">${state.accountId} ${state.mode==='demo'?'• DEMO':''}</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="status-pill" style="background:${ol?'rgba(0,255,136,.08)':'rgba(255,68,68,.08)'};border:1px solid ${ol?'rgba(0,255,136,.15)':'rgba(255,68,68,.15)'}">
+        <div class="status-dot" style="background:${ol?'#00ff88':'#ff4444'};box-shadow:0 0 8px ${ol?'#00ff88':'#ff4444'}"></div>
+        <span style="font-size:9px;font-weight:700;color:${ol?'#00ff88':'#ff4444'};letter-spacing:1px">${ol?'ONLINE':'OFFLINE'}</span>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">✕</button>
+    </div>
+  </div>
+
+  <!-- EA Status Bar -->
+  <div class="status-bar" style="background:${on?'rgba(0,255,136,.03)':'rgba(255,68,68,.03)'};border-bottom:1px solid ${on?'rgba(0,255,136,.06)':'rgba(255,68,68,.06)'}">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="ea-dot" style="background:${on?'#00ff88':'#ff4444'};box-shadow:0 0 10px ${on?'#00ff8888':'#ff444488'};${on?'animation:pulse 2s infinite':''}"></div>
+      <span class="font-d" style="font-size:11px;font-weight:700;color:${on?'#00ff88':'#ff4444'};letter-spacing:2px">EA ${on?'ACTIVE':'STOPPED'}</span>
+    </div>
+    <span style="font-size:10px;color:#334">${d.symbol||'—'} • ${(d.server_time||'').substring(11)||'—'}</span>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-nav">
+    ${['monitor|📊|Monitor','control|⚡|Control','settings|⚙️|Set','log|📋|Log'].map(t=>{
+      const [id,icon,label]=t.split('|');
+      return `<button class="tab-btn ${state.tab===id?'active':''}" onclick="state.tab='${id}';render()">${icon} ${label}</button>`;
+    }).join('')}
+  </div>
+
+  <!-- Content -->
+  <div class="content fade-in">
+    ${state.tab==='monitor'?renderMonitor(d,tp):''}
+    ${state.tab==='control'?renderControl(on):''}
+    ${state.tab==='settings'?renderSettings():''}
+    ${state.tab==='log'?renderLog(d):''}
+  </div>
+</div>`;
+}
+
+function renderMonitor(d, tp) {
+  return `
+    <div class="card">
+      ${[['Broker',d.broker],['Server',d.account_server],['Leverage',d.leverage]].map(([l,v])=>
+        `<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:${l==='Broker'?'0':'6px'}">
+          <span style="color:#556">${l}</span><span style="color:#99a">${v||'—'}</span>
+        </div>`).join('')}
+    </div>
+    <div class="row">
+      ${statCard('Balance','$'+Number(d.balance||0).toFixed(2),'#00ccff')}
+      ${statCard('Equity','$'+Number(d.equity||0).toFixed(2),'#00ff88')}
+    </div>
+    <div class="row">
+      ${statCard('Floating P/L','$'+tp.toFixed(2),tp>=0?'#00ff88':'#ff4444')}
+      ${statCard('Spread',d.spread||'—','#ffd700','points')}
+    </div>
+    <div class="glow-line"></div>
+    <div class="section-title">POSISI TERBUKA</div>
+    <div class="row">
+      ${posCard('BUY','buy','#00ff88',d)}
+      ${posCard('SELL','sell','#ff4444',d)}
+    </div>
+    <div class="price-box">
+      <div style="flex:1;text-align:center">
+        <div style="font-size:9px;color:rgba(255,68,68,.5);letter-spacing:2px">BID</div>
+        <div class="font-d" style="font-size:20px;font-weight:700;color:#ff5555">${d.bid||'—'}</div>
+      </div>
+      <div class="price-divider"></div>
+      <div style="flex:1;text-align:center">
+        <div style="font-size:9px;color:rgba(0,255,136,.5);letter-spacing:2px">ASK</div>
+        <div class="font-d" style="font-size:20px;font-weight:700;color:#00ff88">${d.ask||'—'}</div>
+      </div>
+    </div>`;
+}
+
+function statCard(label, value, color, sub) {
+  return `<div class="stat">
+    <div class="stat-label">${label}</div>
+    <div class="stat-value" style="color:${color}">${value}</div>
+    ${sub?`<div class="stat-sub">${sub}</div>`:''}
+  </div>`;
+}
+
+function posCard(label, type, color, d) {
+  const pos = d[type+'_positions']||0;
+  const lots = Number(d[type+'_lots']||0).toFixed(2);
+  const pnl = Number(d[type+'_profit']||0);
+  return `<div class="pos-card ${type}">
+    <div style="font-size:10px;color:${color}99;letter-spacing:2px">${label}</div>
+    <div class="font-d" style="font-size:30px;font-weight:800;color:${color};margin:6px 0 4px">${pos}</div>
+    <div style="font-size:11px;color:#446">${lots} lot</div>
+    <div style="font-size:14px;font-weight:700;margin-top:6px;color:${pnl>=0?'#00ff88':'#ff4444'}">$${pnl.toFixed(2)}</div>
+  </div>`;
+}
+
+function renderControl(on) {
+  const cl = state.cmdLoading;
+  let closeSection = '';
+
+  if (state.confirmCmd) {
+    const labels = { CLOSE_BUY:"Close semua BUY?", CLOSE_SELL:"Close semua SELL?", CLOSE_ALL:"Close SEMUA posisi?" };
+    closeSection = `
+      <div class="confirm-box">
+        <div style="font-size:13px;color:#ddcc44;font-weight:700;margin-bottom:10px">⚠️ ${labels[state.confirmCmd]}</div>
+        <div style="display:flex;gap:8px">
+          <div style="flex:1"><button class="btn btn-danger btn-sm" onclick="sendCmd('${state.confirmCmd}')" ${cl?'disabled':''}>YA, CLOSE</button></div>
+          <div style="flex:1"><button class="btn btn-outline btn-sm" style="border-color:#556;color:#556" onclick="state.confirmCmd=null;render()">BATAL</button></div>
+        </div>
+      </div>`;
+  } else {
+    closeSection = `
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div style="flex:1"><button class="btn btn-outline" onclick="state.confirmCmd='CLOSE_BUY';render()" ${cl?'disabled':''}>CLOSE BUY</button></div>
+        <div style="flex:1"><button class="btn btn-danger" onclick="state.confirmCmd='CLOSE_SELL';render()" ${cl?'disabled':''}>CLOSE SELL</button></div>
+      </div>
+      <button class="btn btn-warn" onclick="state.confirmCmd='CLOSE_ALL';render()" ${cl?'disabled':''}>⚠️ CLOSE ALL POSITIONS</button>`;
+  }
+
+  return `
+    <div style="text-align:center;padding:24px 0 20px">
+      <div class="section-title" style="letter-spacing:3px;margin-bottom:20px">SYSTEM POWER</div>
+      <button onclick="sendCmd('${on?'OFF':'ON'}')" ${cl?'disabled':''} style="background:none;border:none;cursor:pointer;padding:10px;border-radius:50%;box-shadow:0 0 80px ${on?'rgba(0,255,136,.15)':'rgba(255,68,68,.1)'};transition:all .3s">
+        <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
+          <circle cx="36" cy="36" r="34" stroke="${on?'#00ff88':'#ff4444'}" stroke-width="2" fill="none" opacity=".15"/>
+          <circle cx="36" cy="36" r="30" stroke="${on?'#00ff88':'#ff4444'}" stroke-width="2.5" fill="none" opacity=".4"/>
+          <circle cx="36" cy="36" r="26" stroke="${on?'#00ff88':'#ff4444'}" stroke-width="2" fill="none"/>
+          <path d="M36 16V36" stroke="${on?'#00ff88':'#ff4444'}" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M24 22a18 18 0 1 0 24 0" stroke="${on?'#00ff88':'#ff4444'}" stroke-width="3" stroke-linecap="round" fill="none"/>
+        </svg>
+      </button>
+      <div class="font-d" style="font-size:20px;font-weight:800;margin-top:18px;color:${on?'#00ff88':'#ff4444'};letter-spacing:4px;text-shadow:0 0 20px ${on?'#00ff8844':'#ff444444'}">EA ${on?'ONLINE':'OFFLINE'}</div>
+      <div style="font-size:11px;color:#334;margin-top:6px">Tap untuk ${on?'matikan':'nyalakan'} EA</div>
+    </div>
+    <div class="glow-line" style="background:linear-gradient(90deg,transparent,${on?'#00ff88':'#ff4444'}66,transparent)"></div>
+    <div class="section-title" style="letter-spacing:3px;margin-bottom:12px">CLOSE POSITIONS</div>
+    ${closeSection}
+    <div class="warning-box">Close positions bersifat permanen dan tidak bisa dibatalkan.</div>`;
+}
+
+function renderSettings() {
+  const s = state.settings;
+  const cl = state.cmdLoading;
+  const fields = [
+    ['Cut Loss ($)','cut_loss','700'],['Main Lot','main_lot','0.01'],
+    ['Trail Step (pips)','trail_step','30'],['Trail Gap (pips)','trail_gap','10'],
+    ['Trail Activation (pips)','trail_activation','15']
+  ];
+  return `
+    <div class="section-title" style="letter-spacing:3px;margin-bottom:16px">PARAMETER EA</div>
+    ${fields.map(([l,k,p])=>`
+      <div style="margin-bottom:14px">
+        <label style="font-size:11px;color:#667;letter-spacing:.5px">${l}</label>
+        <input type="number" class="settings-input" id="set_${k}" value="${s[k]}" placeholder="${p}" step="any">
+      </div>`).join('')}
+    <div style="margin-top:4px">
+      <button class="btn btn-cyan" onclick="readSettings();saveSettings()" ${cl==='S'?'disabled':''}>${cl==='S'?'⏳ ...':'💾 SIMPAN SETTINGS'}</button>
+    </div>
+    <div style="margin-top:14px;padding:10px 14px;border-radius:10px;background:rgba(0,204,255,.04);border:1px solid rgba(0,204,255,.08);font-size:11px;color:#446688;line-height:1.5">
+      ℹ️ Settings dikirim ke EA saat polling berikutnya (maks 5 detik).
+    </div>`;
+}
+
+function renderLog(d) {
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="section-title" style="margin:0;letter-spacing:3px">SYSTEM LOG</div>
+      <button onclick="state.logs=[];render()" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:3px 10px;color:#445;cursor:pointer;font-size:10px;font-family:'JetBrains Mono',monospace">Clear</button>
+    </div>
+    ${d.log?`<div class="log-ea">[EA] ${d.log}</div>`:''}
+    <div class="log-container">
+      ${state.logs.length===0?'<div style="padding:24px;text-align:center;color:#223;font-size:11px">Belum ada log...</div>'
+        :state.logs.map(l=>`<div class="log-item"><span style="color:#334">[${l.time}]</span> <span style="color:#889">${l.msg}</span></div>`).join('')}
+    </div>`;
+}
+
+// ======================== EVENT BINDING ========================
+function bindEvents() {
+  const accInput = document.getElementById('accInput');
+  if (accInput) {
+    accInput.addEventListener('input', e => { state.accountId = e.target.value; });
+    accInput.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  }
+  const urlInput = document.getElementById('urlInput');
+  if (urlInput) {
+    urlInput.addEventListener('input', e => { state.apiUrl = e.target.value; });
+  }
+}
+
+function readSettings() {
+  ['cut_loss','main_lot','trail_step','trail_gap','trail_activation'].forEach(k => {
+    const el = document.getElementById('set_' + k);
+    if (el) state.settings[k] = el.value;
+  });
+}
+
+// ======================== INIT ========================
+render();
+</script>
+</body>
+</html>
